@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.ocsc.summerchat.dao.UserDao">
+
+    <resultMap type="top.ocsc.summerchat.entity.User" id="UserMap">
+        <result property="uin" column="uin" jdbcType="INTEGER"/>
+        <result property="encryptedPassword" column="encrypted_password" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+    </resultMap>
+
+
+    <!--查询单个-->
+    <select id="queryByUin" resultMap="UserMap">
+        select uin,
+               encrypted_password,
+               email
+        from user
+        where uin = #{uin}
+    </select>
+    <!--按邮箱查询-->
+    <select id="queryByEmail" resultMap="UserMap">
+        select uin,
+               encrypted_password,
+               email
+        from user
+        where email = #{email}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="UserMap">
+        select
+        uinencrypted_passwordemail
+        from user
+        <where>
+            <if test="uin != null">
+                and uin = #{uin}
+            </if>
+            <if test="encryptedPassword != null and encryptedPassword != ''">
+                and encrypted_password = #{encryptedPassword}
+            </if>
+            <if test="email != null and email != ''">
+                and email = #{email}
+            </if>
+        </where>
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from user
+        <where>
+            <if test="uin != null">
+                and uin = #{uin}
+            </if>
+            <if test="encryptedPassword != null and encryptedPassword != ''">
+                and encrypted_password = #{encryptedPassword}
+            </if>
+            <if test="email != null and email != ''">
+                and email = #{email}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="uin" useGeneratedKeys="true">
+        insert into user(encrypted_password, email)
+        values (#{encryptedPassword}, #{email})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="uin" useGeneratedKeys="true">
+        insert into user(encrypted_password,email)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.encryptedPassword},#{entity.email})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="uin" useGeneratedKeys="true">
+        insert into user(encrypted_password,email)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.encryptedPassword},#{entity.email})
+        </foreach>
+        on duplicate key update
+        encrypted_password = values(encrypted_password)email = values(email)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update user
+        <set>
+            <if test="encryptedPassword != null and encryptedPassword != ''">
+                encrypted_password = #{encryptedPassword},
+            </if>
+            <if test="email != null and email != ''">
+                email = #{email},
+            </if>
+        </set>
+        where uin = #{uin}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from user
+        where uin = #{uin}
+    </delete>
+
+</mapper>
+

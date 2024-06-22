@@ -1,0 +1,16 @@
+
+spring:
+  cloud:
+    nacos:
+      #username
+      #      username: nacos
+      #password
+      #      password: nacos
+      discovery:
+        #集群名称
+        cluster-name: HK
+        #id:端口号
+        server-addr: 192.168.6.118:8848
+        #命名空间
+        namespace: ac25a04d-7bff-4f89-805e-e7cfe173a33a
+

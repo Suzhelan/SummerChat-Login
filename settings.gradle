@@ -1,0 +1,8 @@
+rootProject.name = 'SummerChat-Login'
+include 'core'
+include 'login-service'
+include 'common-module'
+include 'registration-service'
+
+
+
