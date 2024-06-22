@@ -1,5 +1,6 @@
 package top.ocsc.summerchat.login.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson2.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +21,7 @@ public class UserLoginController {
 
     @PostMapping("isLogin")
     public CommonResult isLogin() {
-        return loginService.loginStatus().setMsg("登录状态");
+        return loginService.loginStatus();
     }
 
 }

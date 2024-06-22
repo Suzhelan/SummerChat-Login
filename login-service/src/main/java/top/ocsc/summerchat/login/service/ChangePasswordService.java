@@ -1,4 +1,4 @@
-package top.ocsc.summerchat.registration.service;
+package top.ocsc.summerchat.login.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,8 +13,11 @@ import top.ocsc.summerchat.util.PasswordUtil;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 修改、找回密码服务
+ */
 @Service
-public class UserRegistrationService {
+public class ChangePasswordService {
 
     @Autowired
     private EmailSendService emailSendService;
@@ -23,40 +26,48 @@ public class UserRegistrationService {
     @Autowired
     private RedisUtil<String, String> redisUtil;
 
-    public CommonResult register(String email, String password, String verificationCode) {
-        String key = RedisKeyPrefix.SUMMERCHAT_REGISTRATION_VERIFICATION_CODE + email;
+    /**
+     * 更改密码
+     *
+     * @param email
+     * @param password
+     * @param verificationCode
+     * @return
+     */
+    public CommonResult changePassword(String email, String password, String verificationCode) {
+        String key = RedisKeyPrefix.SUMMERCHAT_CHANGE_PASSWORD_VERIFICATION_CODE + email;
         String code = redisUtil.getCacheValue(key);
         if (code == null) {
-            return CommonResult.error("verification code has expired").setAction(-1);
+            return CommonResult.error("verification code has expired")
+                    .setAction(-1);
         }
         if (!code.equals(verificationCode)) {
-            return CommonResult.error("verification code error").setAction(-2);
+            return CommonResult.error("verification code error")
+                    .setAction(-2);
         }
         //先查询是否已经被注册
         User user = userDao.queryByEmail(email);
-        //这里是为了防止有人同时申请注册 所以这里也需要判断
-        if (user != null) {
-            return CommonResult.error("this email address has been registered").setAction(-3);
+        //没注册 返回结果
+        if (user == null) {
+            return CommonResult.error("this email is not registered")
+                    .setAction(-3);
         }
-        User newUser = new User();
-        newUser.setEmail(email);
-        newUser.setEncryptedPassword(PasswordUtil.encryptedPassword(password));
-        userDao.insert(newUser);
-        newUser = userDao.queryByEmail(email);
-        redisUtil.delete(key);
+        user.setEmail(email);
+        user.setEncryptedPassword(PasswordUtil.encryptedPassword(password));
+        userDao.update(user);
         //注册逻辑
-        return CommonResult.ok("registration success")
-                .set("uin", newUser.getUin());
+        return CommonResult.ok("password has been updated")
+                .set("uin", user.getUin());
     }
 
     /**
-     * 校验邮箱是否被注册过 没有则发送邮件并返回通知接受邮件的结果
+     * 申请更改密码
      *
      * @param email 邮箱
      * @return
      */
-    public CommonResult applyToRegisterAccount(String email) {
-        String key = RedisKeyPrefix.SUMMERCHAT_REGISTRATION_VERIFICATION_CODE + email;
+    public CommonResult applyToChangeAccountPassword(String email) {
+        String key = RedisKeyPrefix.SUMMERCHAT_CHANGE_PASSWORD_VERIFICATION_CODE + email;
         if (redisUtil.hasKey(key)) {
             Long expire = redisUtil.getExpire(key, TimeUnit.SECONDS);
             return CommonResult.ok()
@@ -65,9 +76,9 @@ public class UserRegistrationService {
                     .set("expire", expire);//验证码过期时间
         }
         User user = userDao.queryByEmail(email);
-        //邮箱已注册
+        //邮箱没注册
         if (user == null) {
-            return CommonResult.error("this email address has been registered")
+            return CommonResult.error("this email is not registered")
                     .setAction(-1);
         }
         //生成随机验证码
@@ -75,7 +86,7 @@ public class UserRegistrationService {
         int number = random.nextInt(900000) + 100000;
         String randomString = Integer.toString(number);
         //发送邮件
-        emailSendService.sendRegistrationVerificationCodeEmail(email, "注册账号中", randomString);
+        emailSendService.sendRegistrationVerificationCodeEmail(email, "申请找回密码", randomString);
         //将验证码存入redis 设置过期时间为20分钟
         redisUtil.setCacheValue(key, randomString, 20, TimeUnit.MINUTES);
 
@@ -83,5 +94,4 @@ public class UserRegistrationService {
                 .set("email", email)
                 .set("expire", redisUtil.getExpire(key, TimeUnit.SECONDS));
     }
-
 }
