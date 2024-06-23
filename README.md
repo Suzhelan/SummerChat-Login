@@ -45,3 +45,6 @@ CREATE TABLE `user` (
 ```
  - 安装Redis
  - 安装Nacos服务
+
+## 入手配置文件
+
