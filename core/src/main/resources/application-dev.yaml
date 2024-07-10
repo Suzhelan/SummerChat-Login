@@ -10,7 +10,7 @@ spring:
         #集群名称
         cluster-name: HK
         #id:端口号
-        server-addr: 192.168.6.118:8848
+        server-addr: 192.168.0.5:8848
         #命名空间
-        namespace: ac25a04d-7bff-4f89-805e-e7cfe173a33a
+        namespace: 03a5daf8-55c4-45af-bb8b-59bb49ef2fe0
 

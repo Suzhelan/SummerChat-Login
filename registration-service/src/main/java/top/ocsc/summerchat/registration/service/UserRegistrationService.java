@@ -36,7 +36,8 @@ public class UserRegistrationService {
         User user = userDao.queryByEmail(email);
         //这里是为了防止有人同时申请注册 所以这里也需要判断
         if (user != null) {
-            return CommonResult.error("this email address has been registered").setAction(-3);
+            return CommonResult.error("this email address has been registered")
+                    .setAction(-3);
         }
         User newUser = new User();
         newUser.setEmail(email);
@@ -66,7 +67,7 @@ public class UserRegistrationService {
         }
         User user = userDao.queryByEmail(email);
         //邮箱已注册
-        if (user == null) {
+        if (user != null) {
             return CommonResult.error("this email address has been registered")
                     .setAction(-1);
         }
