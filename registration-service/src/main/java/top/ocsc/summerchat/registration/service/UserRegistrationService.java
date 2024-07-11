@@ -27,18 +27,29 @@ public class UserRegistrationService {
         String key = RedisKeyPrefix.SUMMERCHAT_REGISTRATION_VERIFICATION_CODE + email;
         String code = redisUtil.getCacheValue(key);
         if (code == null) {
-            return CommonResult.error("verification code has expired").setAction(-1);
+            return CommonResult
+                    .error("verification code has expired")
+                    .setAction(-1);
         }
         if (!code.equals(verificationCode)) {
-            return CommonResult.error("verification code error").setAction(-2);
+            return CommonResult
+                    .error("verification code error")
+                    .setAction(-2);
         }
         //先查询是否已经被注册
         User user = userDao.queryByEmail(email);
         //这里是为了防止有人同时申请注册 所以这里也需要判断
         if (user != null) {
-            return CommonResult.error("this email address has been registered")
+            return CommonResult
+                    .error("this email address has been registered")
                     .setAction(-3);
         }
+        if (!PasswordUtil.checkPassword(password)) {
+            return CommonResult
+                    .error("password format error")
+                    .setAction(-4);
+        }
+
         User newUser = new User();
         newUser.setEmail(email);
         newUser.setEncryptedPassword(PasswordUtil.encryptedPassword(password));
